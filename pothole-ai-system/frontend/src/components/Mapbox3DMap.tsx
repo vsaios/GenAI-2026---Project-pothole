@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { motion } from "framer-motion"
 import mapboxgl, { Map } from "mapbox-gl"
 
+import { MAPBOX_TOKEN } from "@/config/env"
 import { torontoReports } from "@/mock/torontoReports"
 import type { Report } from "@/types/report"
 import { cn } from "@/lib/utils"
@@ -15,7 +16,7 @@ type Mapbox3DMapProps = {
   streetLevelMode?: boolean
 }
 
-const token = import.meta.env.VITE_MAPBOX_TOKEN || ""
+const token = MAPBOX_TOKEN
 
 const defaultCenter: [number, number] = [-79.3832, 43.6532]
 
@@ -186,46 +187,78 @@ export function Mapbox3DMap({
           clusterMaxZoom: 14,
         })
 
-        // Density heatmap with green → yellow → red gradient based on cluster size.
+        // Multi-layer hotspot: green outer glow → yellow mid → red core (stacked, soft blend).
+        const clusterFilter: [string, string] = ["has", "point_count"]
+
+        // Layer 1: outer glow – green, largest radius, low opacity
         map.addLayer({
-          id: "incidents-cluster-glow",
+          id: "incidents-cluster-outer",
           type: "circle",
           source: "incidents-clustered",
-          filter: ["has", "point_count"],
+          filter: clusterFilter,
           paint: {
-            // Base radius; we will also animate this for a subtle pulse.
             "circle-radius": [
               "interpolate",
               ["linear"],
               ["zoom"],
               8,
-              18,
+              28,
               11,
-              30,
+              48,
               14,
-              42,
+              64,
             ],
-            "circle-color": [
+            "circle-color": "rgb(34, 197, 94)",
+            "circle-blur": 0.92,
+            "circle-opacity": 0.26,
+          },
+        })
+
+        // Layer 2: middle density – yellow, medium radius, medium opacity
+        map.addLayer({
+          id: "incidents-cluster-mid",
+          type: "circle",
+          source: "incidents-clustered",
+          filter: clusterFilter,
+          paint: {
+            "circle-radius": [
               "interpolate",
               ["linear"],
-              ["get", "point_count"],
-              1,
-              "rgba(22,163,74,0.28)",  // low: soft green
-              5,
-              "rgba(34,197,94,0.42)", // green
-              10,
-              "rgba(234,179,8,0.6)",  // yellow
-              20,
-              "rgba(250,204,21,0.75)", // brighter yellow
-              35,
-              "rgba(248,113,113,0.85)", // light red
-              60,
-              "rgba(239,68,68,0.9)",   // red
-              100,
-              "rgba(220,38,38,0.92)",  // intense red
+              ["zoom"],
+              8,
+              16,
+              11,
+              28,
+              14,
+              40,
             ],
+            "circle-color": "rgb(250, 204, 21)",
             "circle-blur": 0.9,
-            "circle-opacity": 0.8,
+            "circle-opacity": 0.52,
+          },
+        })
+
+        // Layer 3: core hotspot – red, smallest radius, highest opacity
+        map.addLayer({
+          id: "incidents-cluster-core",
+          type: "circle",
+          source: "incidents-clustered",
+          filter: clusterFilter,
+          paint: {
+            "circle-radius": [
+              "interpolate",
+              ["linear"],
+              ["zoom"],
+              8,
+              10,
+              11,
+              18,
+              14,
+              26,
+            ],
+            "circle-color": "rgb(239, 68, 68)",
+            "circle-blur": 0.88,
+            "circle-opacity": 0.88,
           },
         })
 
@@ -252,28 +285,34 @@ export function Mapbox3DMap({
           },
         })
 
-        // Subtle pulse animation for cluster glow: expand/fade and return.
+        // Subtle pulse: expand/fade all three hotspot layers in sync.
+        const clusterLayerIds = ["incidents-cluster-outer", "incidents-cluster-mid", "incidents-cluster-core"]
+        const baseRadii = [28, 16, 10]
+        const baseOpacities = [0.26, 0.52, 0.88]
+
         const animateClusterGlow = () => {
-          if (!map.isStyleLoaded() || !map.getLayer("incidents-cluster-glow")) {
+          if (!map.isStyleLoaded() || !map.getLayer("incidents-cluster-outer")) {
             clusterAnimationFrameRef.current = requestAnimationFrame(animateClusterGlow)
             return
           }
 
           const now = performance.now()
-          const t = (now % 2000) / 2000 // 0 → 1 over 2s
-          const pulse = 1 + 0.12 * Math.sin(t * 2 * Math.PI)
+          const t = (now % 2000) / 2000
+          const pulse = 1 + 0.1 * Math.sin(t * 2 * Math.PI)
           const zoomLevel = map.getZoom()
-          const baseRadius = 18 + (zoomLevel - 8) * 3
-          const radius = Math.max(14, baseRadius * pulse)
-
-          const baseOpacity = 0.65
-          const opacity = baseOpacity + 0.18 * Math.sin(t * 2 * Math.PI)
+          const zoomFactor = Math.max(0, Math.min(1, (zoomLevel - 8) / 6))
 
           try {
-            map.setPaintProperty("incidents-cluster-glow", "circle-radius", radius)
-            map.setPaintProperty("incidents-cluster-glow", "circle-opacity", opacity)
+            for (let i = 0; i < clusterLayerIds.length; i++) {
+              const baseR = baseRadii[i] + zoomFactor * (i === 0 ? 36 : i === 1 ? 24 : 16)
+              const radius = Math.max(8, baseR * pulse)
+              const baseO = baseOpacities[i]
+              const opacity = baseO * (0.92 + 0.08 * Math.sin(t * 2 * Math.PI))
+              map.setPaintProperty(clusterLayerIds[i], "circle-radius", radius)
+              map.setPaintProperty(clusterLayerIds[i], "circle-opacity", opacity)
+            }
           } catch {
-            // Layer may have been removed; ignore and let cleanup stop the loop.
+            // Layers may have been removed.
           }
 
           clusterAnimationFrameRef.current = requestAnimationFrame(animateClusterGlow)
@@ -281,8 +320,7 @@ export function Mapbox3DMap({
 
         clusterAnimationFrameRef.current = requestAnimationFrame(animateClusterGlow)
 
-        // Click on a hotspot (cluster glow) to smoothly zoom into that area.
-        map.on("click", "incidents-cluster-glow", (e) => {
+        const zoomToCluster = (e: mapboxgl.MapLayerMouseEvent) => {
           e.originalEvent.stopPropagation()
           const features = e.features
           if (!features || features.length === 0) return
@@ -299,6 +337,12 @@ export function Mapbox3DMap({
             duration: 900,
             essential: true,
           })
+        }
+
+        clusterLayerIds.forEach((layerId) => {
+          map.on("click", layerId, zoomToCluster)
+          map.on("mouseenter", layerId, () => { map.getCanvas().style.cursor = "pointer" })
+          map.on("mouseleave", layerId, () => { map.getCanvas().style.cursor = "" })
         })
       }
 
@@ -372,12 +416,11 @@ export function Mapbox3DMap({
     return (
       <div
         className={cn(
-          "flex w-full items-center justify-center bg-slate-950 text-xs text-slate-400",
+          "flex w-full items-center justify-center bg-slate-950 text-sm text-slate-400",
           heightClass,
         )}
       >
-        Map unavailable: missing Mapbox token. Add VITE_MAPBOX_TOKEN in a .env file to see the
-        3D map.
+        Map loading…
       </div>
     )
   }

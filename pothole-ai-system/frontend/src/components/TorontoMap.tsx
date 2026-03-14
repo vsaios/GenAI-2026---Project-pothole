@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import mapboxgl, { Map } from "mapbox-gl"
 
+import { MAPBOX_TOKEN } from "@/config/env"
 import { torontoReports } from "@/mock/torontoReports"
 import type { Report } from "@/types/report"
-
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN || ""
 
 type SelectedReport = Report | null
 
@@ -41,9 +40,7 @@ export function TorontoMap() {
   useEffect(() => {
     if (!MAPBOX_TOKEN) {
       console.warn("Mapbox token missing. Running in demo mode.")
-      setError(
-        "Map disabled in demo mode — no Mapbox token provided.",
-      )
+      setError("Map loading…")
       return
     }
 
@@ -186,8 +183,8 @@ export function TorontoMap() {
           className="h-[420px] w-full overflow-hidden rounded-lg border border-slate-800"
         />
       ) : (
-        <div className="flex h-[420px] w-full items-center justify-center rounded-lg border border-dashed border-slate-700 bg-slate-900 text-xs text-slate-400">
-          Map disabled in demo mode — no Mapbox token provided.
+        <div className="flex h-[420px] w-full items-center justify-center rounded-lg border border-dashed border-slate-700 bg-slate-900 text-sm text-slate-400">
+          Map loading…
         </div>
       )}
       {error && MAPBOX_TOKEN && (

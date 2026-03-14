@@ -93,10 +93,18 @@ function clustersToMarkers(clusters: Cluster[]): COBEOptions["markers"] {
       size = Math.max(size, 0.06)
     }
 
-    return {
-      location: [cluster.latitude, cluster.longitude] as [number, number],
+    const location: [number, number] = [cluster.latitude, cluster.longitude]
+    const base: { location: [number, number]; size: number; color?: [number, number, number] } = {
+      location,
       size,
     }
+
+    if (cluster.maxSeverity === "high") {
+      base.color = [0.85, 0.35, 0.95]
+    } else if (cluster.maxSeverity === "medium") {
+      base.color = [0.2, 0.82, 0.78]
+    }
+    return base
   })
 }
 
@@ -108,12 +116,12 @@ const BASE_GLOBE_CONFIG: COBEOptions = {
   phi: 0,
   theta: 0.3,
   dark: 0,
-  diffuse: 0.4,
+  diffuse: 0.5,
   mapSamples: 16000,
-  mapBrightness: 1.2,
-  baseColor: [1, 1, 1],
-  markerColor: [251 / 255, 100 / 255, 21 / 255],
-  glowColor: [1, 1, 1],
+  mapBrightness: 1.35,
+  baseColor: [0.88, 0.88, 0.9],
+  markerColor: [0.25, 0.92, 1],
+  glowColor: [0.2, 0.78, 0.9],
   markers: [],
 }
 

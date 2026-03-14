@@ -17,12 +17,12 @@ export function Map3D({ heightClass = "h-[320px]", className }: Map3DProps) {
         className="mx-auto max-w-full md:!max-w-[520px]"
         reports={torontoReports}
         configOverride={{
-          baseColor: [0.08, 0.1, 0.14],
-          markerColor: [0.4, 0.85, 1],
-          glowColor: [0.5, 0.8, 1],
-          dark: 1,
-          diffuse: 0.35,
-          mapBrightness: 1.15,
+          baseColor: [0.9, 0.9, 0.92],
+          markerColor: [0.3, 0.95, 1],
+          glowColor: [0.35, 0.82, 0.95],
+          dark: 0,
+          diffuse: 0.55,
+          mapBrightness: 1.4,
         }}
       />
     </div>

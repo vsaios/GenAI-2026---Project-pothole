@@ -1,4 +1,4 @@
-# StreetSafe Frontend
+# Rua Frontend
 
 ## Setup (run locally)
 

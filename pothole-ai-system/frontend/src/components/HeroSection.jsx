@@ -6,7 +6,7 @@ export function HeroSection({ onFocusToronto }) {
           Global safety signals at a glance
         </h2>
         <p className="max-w-xl text-sm text-slate-300">
-          StreetSafe aggregates reports from edge cameras and community members to
+          Rua aggregates reports from edge cameras and community members to
           highlight hotspots of potholes, unsafe intersections, broken streetlights, and
           other hazards before they become serious incidents.
         </p>

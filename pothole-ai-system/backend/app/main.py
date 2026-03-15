@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="StreetSafe API", lifespan=lifespan)
+app = FastAPI(title="Rua API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

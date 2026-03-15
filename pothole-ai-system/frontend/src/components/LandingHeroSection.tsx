@@ -5,7 +5,7 @@ export function LandingHeroSection() {
     <section className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-10 md:flex-row md:items-center">
       <div className="flex-1 space-y-4">
         <h1 className="bg-gradient-to-b from-slate-50 to-slate-400 bg-clip-text text-4xl font-bold tracking-tight text-transparent md:text-5xl lg:text-6xl">
-          StreetSafe
+          Rua
         </h1>
         <p className="max-w-xl text-sm text-slate-300">
           AI-powered infrastructure monitoring that detects, maps, and prioritises potholes and

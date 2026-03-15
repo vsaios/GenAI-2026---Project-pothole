@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { Routes, Route, Navigate, useLocation } from "react-router-dom"
 import { Navbar } from "@/components/Navbar"
 import { ChatWidget } from "@/components/ChatWidget"
+import { ProtectedRoute } from "@/components/ProtectedRoute"
 import { ReportsProvider } from "@/context/ReportsContext"
 import { Landing } from "@/pages/Landing"
 import { Dashboard } from "@/pages/Dashboard"
@@ -9,22 +10,57 @@ import { Report } from "@/pages/Report"
 import { Login } from "@/pages/Login"
 import { Signup } from "@/pages/Signup"
 
-function App() {
-  const [page, setPage] = useState("landing")
+function AppContent() {
+  const location = useLocation()
+  const showChat =
+    location.pathname === "/dashboard" ||
+    location.pathname === "/toronto" ||
+    location.pathname === "/report"
 
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<Navigate to="/home" replace />} />
+        <Route path="/home" element={<Landing />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/toronto"
+          element={
+            <ProtectedRoute>
+              <TorontoPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/report"
+          element={
+            <ProtectedRoute>
+              <Report />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+
+      {showChat && <ChatWidget />}
+    </>
+  )
+}
+
+function App() {
   return (
     <ReportsProvider>
       <div className="min-h-screen bg-slate-950 text-slate-50">
-        <Navbar currentPage={page} onNavigate={setPage} />
-
-        {page === "landing" && <Landing />}
-        {page === "dashboard" && <Dashboard onNavigate={setPage} />}
-        {page === "toronto" && <TorontoPage />}
-        {page === "report" && <Report onNavigate={setPage} />}
-        {page === "login" && <Login onNavigate={setPage} />}
-        {page === "signup" && <Signup onNavigate={setPage} />}
-
-        {page !== "landing" && page !== "login" && page !== "signup" && <ChatWidget />}
+        <Navbar />
+        <AppContent />
       </div>
     </ReportsProvider>
   )

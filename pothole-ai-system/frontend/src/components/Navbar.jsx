@@ -1,76 +1,77 @@
-import { ReportButton } from "@/components/ReportButton"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "@/context/AuthContext"
 
-export function Navbar({ currentPage, onNavigate }) {
+export function Navbar() {
   const { user, loading, logout } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
   const isLoggedIn = !!user
 
   async function handleLogout() {
     try {
       await logout()
-      onNavigate("landing")
+      navigate("/home")
     } catch {
-      onNavigate("landing")
+      navigate("/home")
     }
   }
 
   return (
     <header className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
       <div className="flex items-center gap-2">
-        <span className="text-xl font-semibold tracking-tight">StreetSafe</span>
+        <Link
+          to="/home"
+          className="text-xl font-semibold tracking-tight text-slate-50 hover:text-white"
+        >
+          Rua
+        </Link>
         <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] uppercase text-emerald-300">
           beta
         </span>
       </div>
 
       <nav className="flex items-center gap-3 text-sm">
-        <button
-          onClick={() => onNavigate("landing")}
-          className={`rounded px-3 py-1 ${
-            currentPage === "landing"
-              ? "bg-slate-100 text-slate-900"
-              : "bg-slate-800 text-slate-100"
-          }`}
-        >
-          Global view
-        </button>
-        <button
-          onClick={() => onNavigate("toronto")}
-          className={`rounded px-3 py-1 ${
-            currentPage === "toronto"
-              ? "bg-slate-100 text-slate-900"
-              : "bg-slate-800 text-slate-100"
-          }`}
-        >
-          Toronto map
-        </button>
-        <button
-          onClick={() => onNavigate("dashboard")}
-          className={`rounded px-3 py-1 ${
-            currentPage === "dashboard"
-              ? "bg-slate-100 text-slate-900"
-              : "bg-slate-800 text-slate-100"
-          }`}
-        >
-          Dashboard
-        </button>
+        {!loading && isLoggedIn && (
+          <>
+            <Link
+              to="/dashboard"
+              className={`rounded px-3 py-1 ${
+                location.pathname === "/dashboard"
+                  ? "bg-slate-100 text-slate-900"
+                  : "bg-slate-800 text-slate-100 hover:bg-slate-700"
+              }`}
+            >
+              Dashboard
+            </Link>
+            <Link
+              to="/toronto"
+              className={`rounded px-3 py-1 ${
+                location.pathname === "/toronto"
+                  ? "bg-slate-100 text-slate-900"
+                  : "bg-slate-800 text-slate-100 hover:bg-slate-700"
+              }`}
+            >
+              Toronto Map
+            </Link>
+          </>
+        )}
       </nav>
 
       <div className="flex items-center gap-2">
         {!loading && !isLoggedIn ? (
           <>
-            <button
-              onClick={() => onNavigate("login")}
+            <Link
+              to="/login"
               className="rounded-full px-4 py-1.5 text-xs font-medium text-slate-100 transition-colors hover:bg-slate-800/80"
             >
               Login
-            </button>
-            <button
-              onClick={() => onNavigate("signup")}
+            </Link>
+            <Link
+              to="/signup"
               className="rounded-full bg-slate-100 px-4 py-1.5 text-xs font-semibold text-slate-900 shadow-sm transition-colors hover:bg-white"
             >
               Sign Up
-            </button>
+            </Link>
           </>
         ) : isLoggedIn ? (
           <>
@@ -79,13 +80,11 @@ export function Navbar({ currentPage, onNavigate }) {
               onClick={handleLogout}
               className="rounded-full px-4 py-1.5 text-xs font-medium text-slate-100 transition-colors hover:bg-slate-800/80"
             >
-              Log out
+              Logout
             </button>
-            {currentPage !== "landing" && <ReportButton onClick={() => onNavigate("report")} />}
           </>
         ) : null}
       </div>
     </header>
   )
 }
-

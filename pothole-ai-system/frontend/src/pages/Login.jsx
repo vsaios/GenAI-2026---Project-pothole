@@ -1,8 +1,10 @@
 import { useState } from "react"
+import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/context/AuthContext"
 
-export function Login({ onNavigate }) {
+export function Login() {
   const { login } = useAuth()
+  const navigate = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState(null)
@@ -14,7 +16,7 @@ export function Login({ onNavigate }) {
     setSubmitting(true)
     try {
       await login(email, password)
-      onNavigate("dashboard")
+      navigate("/dashboard")
     } catch (err) {
       setError(err.message || "Login failed")
     } finally {
@@ -67,13 +69,9 @@ export function Login({ onNavigate }) {
       </form>
       <p className="text-sm text-slate-400">
         No account?{" "}
-        <button
-          type="button"
-          onClick={() => onNavigate("signup")}
-          className="text-emerald-400 hover:underline"
-        >
+        <Link to="/signup" className="text-emerald-400 hover:underline">
           Sign up
-        </button>
+        </Link>
       </p>
     </main>
   )

@@ -13,7 +13,7 @@ export function ChatWidget() {
   const [input, setInput]       = useState("")
   const [loading, setLoading]   = useState(false)
   const [messages, setMessages] = useState<Message[]>([
-    { role: "bot", text: "Hi! I'm your StreetSafe assistant. Ask me about potholes on any Toronto street." }
+    { role: "bot", text: "Hi! I'm your Rua assistant. Ask me about potholes on any Toronto street." }
   ])
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -60,7 +60,7 @@ export function ChatWidget() {
         className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-xs font-semibold text-slate-900 shadow-lg backdrop-blur-md hover:bg-white"
       >
         <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-        <span>{open ? "Close Chat" : "Chat with StreetSafe"}</span>
+        <span>{open ? "Close Chat" : "Chat with Rua"}</span>
       </button>
 
       {/* Chat window */}
@@ -71,7 +71,7 @@ export function ChatWidget() {
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">
             <div>
-              <p className="text-sm font-semibold text-white">StreetSafe Assistant</p>
+              <p className="text-sm font-semibold text-white">Rua Assistant</p>
               <p className="text-[10px] text-slate-400">Ask about Toronto road safety</p>
             </div>
             <button

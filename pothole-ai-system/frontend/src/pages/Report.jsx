@@ -1,4 +1,5 @@
 import { useState, useRef } from "react"
+import { useNavigate } from "react-router-dom"
 import { ReportLocationMap } from "@/components/ReportLocationMap"
 import { useReports } from "@/context/ReportsContext"
 
@@ -14,7 +15,8 @@ const SEVERITIES = ["low", "medium", "high"]
 const DEFAULT_LAT = 43.6532
 const DEFAULT_LNG = -79.3832
 
-export function Report({ onNavigate }) {
+export function Report() {
+  const navigate = useNavigate()
   const { submitReport } = useReports()
   const [latitude, setLatitude] = useState(DEFAULT_LAT)
   const [longitude, setLongitude] = useState(DEFAULT_LNG)
@@ -75,7 +77,7 @@ export function Report({ onNavigate }) {
         send_email: sendEmail,
         image: imageFile,
       })
-      onNavigate("toronto")
+      navigate("/toronto")
     } catch (err) {
       setError(err.message || "Failed to submit report")
     } finally {

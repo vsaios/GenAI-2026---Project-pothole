@@ -22,7 +22,7 @@ export function HeroIntro({ onComplete }: HeroIntroProps) {
       onAnimationComplete={onComplete}
     >
       <div className="text-center">
-        <p className="text-xs tracking-[0.3em] text-slate-400">STREETSAFE</p>
+        <p className="text-xs tracking-[0.3em] text-slate-400">RUA</p>
         <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-50 md:text-5xl">
           City Risk Intelligence
         </h1>

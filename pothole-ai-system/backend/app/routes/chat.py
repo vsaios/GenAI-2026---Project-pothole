@@ -7,8 +7,9 @@ if AI_PATH not in sys.path:
 
 from fastapi import APIRouter
 from pydantic import BaseModel
-from memory_client import get_potholes, get_summary
+from memory_client import get_potholes, get_summary, save_pothole, mark_sent_to_311
 from report_generator import generate_chat_response
+from email_sender import send_pothole_report
 
 router = APIRouter()
 
@@ -32,3 +33,46 @@ async def get_potholes_by_road(road: str):
 @router.get("/summary")
 async def summary():
     return get_summary()
+
+
+# ============================================================
+# NEW — pothole reporting with automatic email to 311
+# ============================================================
+
+class PotholeReport(BaseModel):
+    lat: float
+    lng: float
+    severity: str
+    road: str
+    frame_timestamp: str = ""
+
+@router.post("/report")
+async def report_pothole(data: PotholeReport):
+    """
+    Called when a pothole is detected by the dashcam.
+    1. Saves to Moorcheh memory
+    2. Generates AI email
+    3. Sends to 311 Toronto automatically
+    """
+    # Step 1 — save to Moorcheh
+    pothole = save_pothole(
+        lat=data.lat,
+        lng=data.lng,
+        severity=data.severity,
+        road=data.road,
+        frame_timestamp=data.frame_timestamp
+    )
+
+    # Step 2 & 3 — generate and send email
+    email_result = send_pothole_report(pothole)
+
+    # Step 4 — mark as sent in Moorcheh memory
+    if email_result["status"] == "sent":
+        mark_sent_to_311(pothole["id"])
+
+    return {
+        "pothole":      pothole,
+        "email_status": email_result["status"],
+        "sent_to":      email_result["sent_to"],
+        "subject":      email_result["subject"]
+    }

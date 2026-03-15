@@ -1,9 +1,13 @@
 import { Link } from "react-router-dom"
 import { Mapbox3DMap } from "@/components/Mapbox3DMap"
 import { useReports } from "@/context/ReportsContext"
+import { torontoReports } from "@/mock/torontoReports"
 
 export function TorontoPage() {
   const { reports, loading, error } = useReports()
+
+  // Use live reports when available; otherwise fall back to mock Toronto/GTA data
+  const baseReports = reports.length > 0 ? reports : torontoReports
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
@@ -32,8 +36,8 @@ export function TorontoPage() {
       </section>
       <section className="rounded-lg border border-slate-800 bg-slate-900/70 p-3">
         <Mapbox3DMap
-          reports={reports}
-          userReportIds={reports.map((r) => r.id)}
+          reports={baseReports}
+          userReportIds={baseReports.map((r) => r.id)}
           heightClass="h-[480px]"
           center={[-79.3832, 43.6532]}
           zoom={14.5}

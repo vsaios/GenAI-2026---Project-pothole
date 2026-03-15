@@ -4,11 +4,16 @@ import { useAuth } from "@/context/AuthContext"
 import { HeroIntro } from "@/components/HeroIntro"
 import { Mapbox3DMap } from "@/components/Mapbox3DMap"
 import { useReports } from "@/context/ReportsContext"
+import { dashboardReports } from "@/mock/dashboardReports"
 
 export function Dashboard() {
   const { user } = useAuth()
   const [showIntro, setShowIntro] = useState(true)
   const { reports } = useReports()
+
+  // If API reports are empty (e.g. local AI backend not available),
+  // fall back to dashboard mock data that includes neighbouring cities.
+  const baseReports = reports.length > 0 ? reports : dashboardReports
 
   return (
     <main className="relative min-h-[calc(100vh-4rem)] bg-slate-950">
@@ -24,8 +29,8 @@ export function Dashboard() {
         </Link>
       </div>
       <Mapbox3DMap
-        reports={reports}
-        userReportIds={reports.map((r) => r.id)}
+        reports={baseReports}
+        userReportIds={baseReports.map((r) => r.id)}
       />
       {showIntro && <HeroIntro onComplete={() => setShowIntro(false)} />}
     </main>

@@ -1,0 +1,11 @@
+# Single requirements file for backend + AI (pothole-ai-system)
+fastapi>=0.104.0
+httpx
+moorcheh-sdk
+openai
+python-dotenv
+python-multipart
+requests
+resend
+sqlalchemy>=2.0.0
+uvicorn[standard]>=0.24.0

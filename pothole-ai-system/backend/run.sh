@@ -3,7 +3,7 @@ cd "$(dirname "$0")"
 # Create venv if missing
 if [ ! -d ".venv" ]; then
   python3 -m venv .venv
-  .venv/bin/pip install -r requirements.txt
+  .venv/bin/pip install -r ../requirements.txt
 fi
 . .venv/bin/activate
 # Export Geoapify key for backend reverse geocoding

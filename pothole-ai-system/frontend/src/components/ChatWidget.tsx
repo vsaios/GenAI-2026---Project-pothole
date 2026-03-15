@@ -37,11 +37,9 @@ export function ChatWidget() {
     try {
       const data = await sendChatMessage(messageText)
       setMessages(prev => [...prev, { role: "bot", text: data.answer }])
-    } catch {
-      setMessages(prev => [...prev, {
-        role: "bot",
-        text: "Sorry, I couldn't reach the server. Make sure the backend is running."
-      }])
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Sorry, I couldn't reach the server. Make sure the backend is running."
+      setMessages(prev => [...prev, { role: "bot", text: msg }])
     } finally {
       setLoading(false)
     }

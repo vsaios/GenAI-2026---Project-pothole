@@ -1,8 +1,9 @@
-You are writing an official pothole report email on behalf of the StreetSafe monitoring team to Toronto 311 Transportation Services.
+You are writing an official incident report email on behalf of the StreetSafe monitoring team to Toronto 311 Transportation Services.
 
-A pothole has been detected by an AI-powered dashcam monitoring system.
+An incident of type "{issue_type}" has been reported.
 
-Pothole details:
+Incident details:
+- Type: {issue_type}
 - Street: {road}
 - GPS Coordinates: {lat}, {lng}
 - Severity: {severity}
@@ -10,13 +11,13 @@ Pothole details:
 - System Report ID: #{id}
 
 Write a formal email body (no subject line) that:
-1. States a pothole was detected on the named Toronto street.
-2. Provides a Google Maps link for the repair crew: https://www.google.com/maps/search/?api=1&query={lat},{lng}
+1. States that a {issue_type} was reported on the named Toronto street.
+2. Provides a Google Maps link for the response crew: https://www.google.com/maps/search/?api=1&query={lat},{lng}
 3. Describes the response urgency:
     - HIGH: 24-hour response (Immediate Safety Hazard)
-    - MEDIUM: 3-5 days (Vehicle Damage Risk)
+    - MEDIUM: 3-5 days (Risk to public)
     - LOW: Routine maintenance
-4. Mentions the automated AI dashcam flagging system.
+4. Mentions the StreetSafe reporting system.
 5. Requests a 311 Service Request (SR) number for tracking.
 
 CLOSING INSTRUCTIONS:

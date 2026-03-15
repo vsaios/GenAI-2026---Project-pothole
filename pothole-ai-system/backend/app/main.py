@@ -1,20 +1,35 @@
+"""FastAPI app with chatbot and reports."""
 import sys
 import os
+from pathlib import Path
+
 sys.path.insert(0, os.path.dirname(__file__))
 
-from fastapi import FastAPI, Request
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routes.chat import router as chat_router
+from fastapi.staticfiles import StaticFiles
 
-app = FastAPI(title="Pothole AI Backend")
+# Fixed import — use relative path instead of app.
+from database.db import engine, Base
+from routes.reports import router as reports_router
 
-@app.middleware("http")
-async def add_cors_headers(request: Request, call_next):
-    response = await call_next(request)
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "*"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    return response
+try:
+    from routes.chat import router as chat_router
+    CHAT_AVAILABLE = True
+except Exception as e:
+    print(f"[Chat] Chat router unavailable: {e}")
+    chat_router = None
+    CHAT_AVAILABLE = False
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    yield
+
+
+app = FastAPI(title="StreetSafe API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -24,7 +39,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(chat_router)
+if CHAT_AVAILABLE:
+    app.include_router(chat_router)
+app.include_router(reports_router, prefix="/api", tags=["reports"])
+
+UPLOAD_DIR = Path(__file__).resolve().parent.parent / "data" / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_DIR)), name="uploads")
+
 
 @app.get("/")
 def root():

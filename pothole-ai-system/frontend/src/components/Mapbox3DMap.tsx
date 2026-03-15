@@ -7,6 +7,7 @@ import { torontoReports } from "@/mock/torontoReports"
 import { FLY_TO_EVENT } from "@/services/geocode"
 import type { Report } from "@/types/report"
 import { cn } from "@/lib/utils"
+import { reverseGeocode } from "@/lib/geoapify"
 
 type Mapbox3DMapProps = {
   heightClass?: string
@@ -15,6 +16,10 @@ type Mapbox3DMapProps = {
   minZoom?: number
   /** When true (Toronto map): simple individual node markers only. When false (dashboard): density-aware (cluster glow + isolated nodes). */
   streetLevelMode?: boolean
+  /** Reports to display. If not provided, uses torontoReports mock. */
+  reports?: Report[]
+  /** IDs of user-submitted reports to render as blue dots (others use severity color in non-streetLevel). */
+  userReportIds?: string[]
 }
 
 const token = MAPBOX_TOKEN
@@ -35,6 +40,8 @@ function buildGeoJson(reports: Report[], includeMyhalCentre = false) {
     properties: {
       id: report.id,
       severity: report.severity,
+      timestamp: report.timestamp,
+      issue_type: report.issue_type,
     },
   }))
 
@@ -109,6 +116,8 @@ export function Mapbox3DMap({
   zoom,
   minZoom,
   streetLevelMode = false,
+  reports: reportsProp,
+  userReportIds = [],
 }: Mapbox3DMapProps) {
   const [fallbackReportId, setFallbackReportId] = useState<string | null>(null)
 
@@ -117,9 +126,10 @@ export function Mapbox3DMap({
   const popupRef = useRef<mapboxgl.Popup | null>(null)
   const clusterAnimationFrameRef = useRef<number | null>(null)
 
+  const reports = reportsProp ?? torontoReports
   const geoJson = useMemo(
-    () => buildGeoJson(torontoReports, streetLevelMode),
-    [streetLevelMode],
+    () => buildGeoJson(reports, streetLevelMode),
+    [reports, streetLevelMode],
   )
 
   useEffect(() => {
@@ -365,34 +375,55 @@ export function Mapbox3DMap({
         map.getCanvas().style.cursor = ""
       })
 
-      map.on("click", "incidents-points", (e) => {
+      map.on("click", "incidents-points", async (e) => {
         e.originalEvent.stopPropagation()
         const features = e.features
         if (!features || features.length === 0) return
         const feature = features[0]
 
         const geom = feature.geometry as { type: string; coordinates: number[] }
-        const coordinates: [number, number] = [geom.coordinates[0], geom.coordinates[1]]
+        const [lng, lat] = geom.coordinates
+        const coordinates: [number, number] = [lng, lat]
         const id = feature.properties?.id as string | undefined
+        const severity = (feature.properties?.severity as string) || "medium"
+        const timestamp = feature.properties?.timestamp as string | undefined
+        const issueType = (feature.properties?.issue_type as string) || "pothole"
 
         const isMyhal = id === MYHAL_CENTRE_ID
+
+        const timeReported = timestamp
+          ? new Date(timestamp).toLocaleString("en-CA", {
+              timeZone: "America/New_York",
+              dateStyle: "medium",
+              timeStyle: "short",
+            })
+          : "Unknown"
+        const description =
+          issueType === "pothole"
+            ? "Pothole reported in traffic lane"
+            : `${issueType.replace(/-/g, " ")} reported.`
+        const severityLabel =
+          severity === "high" ? "High" : severity === "medium" ? "Medium" : "Low"
+        const badgeBg = severity === "high" ? "#7f1d1d" : severity === "medium" ? "#854d0e" : "#14532d"
+        const badgeColor = severity === "high" ? "#fca5a5" : severity === "medium" ? "#fde047" : "#86efac"
+
+        const locationPlaceholder = "Loading address..."
         const html = isMyhal
           ? generateReportCardHtml({
               timeReported: "1 hour ago",
               location: "Myhal Centre",
-              description:
-                "Large pothole detected near the entrance road by Myhal Centre.",
+              description: "Large pothole detected near the entrance road by Myhal Centre.",
               severityLabel: "Medium",
               badgeBg: "#854d0e",
               badgeColor: "#fde047",
             })
           : generateReportCardHtml({
-              timeReported: "March 18, 2026 – 2:14 PM",
-              location: "Queen St W & Spadina Ave",
-              description: "Large pothole reported in right traffic lane",
-              severityLabel: "Moderate",
-              badgeBg: "#854d0e",
-              badgeColor: "#fde047",
+              timeReported,
+              location: locationPlaceholder,
+              description,
+              severityLabel,
+              badgeBg,
+              badgeColor,
             })
 
         if (popupRef.current) {
@@ -413,6 +444,22 @@ export function Mapbox3DMap({
 
         popupRef.current = popup
         setFallbackReportId(null)
+
+        if (!isMyhal) {
+          reverseGeocode(lat, lng).then((address) => {
+            if (popupRef.current) {
+              const updatedHtml = generateReportCardHtml({
+                timeReported,
+                location: address,
+                description,
+                severityLabel,
+                badgeBg,
+                badgeColor,
+              })
+              popupRef.current.setHTML(updatedHtml)
+            }
+          })
+        }
       })
 
       setTimeout(() => {

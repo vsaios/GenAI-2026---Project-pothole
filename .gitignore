@@ -1,8 +1,11 @@
-# Ignore all .env files
+# Ignore all .env files (secrets, API keys)
+.env
 *.env
-
-# Ignore .env files in all subdirectories
 **/.env
+!.env.example
+
+# Backend SQLite DB and uploads
+pothole-ai-system/backend/data/
 
 # Ignore Python cache and build files
 __pycache__/
@@ -36,3 +39,5 @@ pothole-ai-system/frontend/node_modules/
 pothole-ai-system/frontend/dist/
 pothole-ai-system/backend/app/__pycache__/
 pothole-ai-system/ai/Moorcheh/__pycache__/
+.DS_Store
+.vscode/

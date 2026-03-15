@@ -215,7 +215,7 @@ export function TorontoMap() {
             <span className="capitalize">{selected.status.replace("_", " ")}</span>
           </p>
           <p className="text-slate-400">
-            Timestamp: {new Date(selected.timestamp).toLocaleString()}
+            Timestamp: {new Date(selected.timestamp).toLocaleString("en-CA", { timeZone: "America/New_York", dateStyle: "medium", timeStyle: "short" })}
           </p>
         </div>
       )}

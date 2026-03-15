@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react"
-import { sendChatMessage } from "../services/api"
+import { MAPBOX_TOKEN } from "@/config/env"
+import { sendChatMessage } from "@/services/api"
+import { geocodeToToronto, emitFlyTo } from "@/services/geocode"
 
 interface Message {
   role: "user" | "bot"
@@ -22,11 +24,18 @@ export function ChatWidget() {
   async function handleSend() {
     if (!input.trim() || loading) return
     const userMsg: Message = { role: "user", text: input }
+    const messageText = input
     setMessages(prev => [...prev, userMsg])
     setInput("")
     setLoading(true)
+
+    // Hidden location navigation: geocode message and fly map to that location (no search bar)
+    geocodeToToronto(messageText, MAPBOX_TOKEN).then((coords) => {
+      if (coords) emitFlyTo(coords.lng, coords.lat)
+    })
+
     try {
-      const data = await sendChatMessage(input)
+      const data = await sendChatMessage(messageText)
       setMessages(prev => [...prev, { role: "bot", text: data.answer }])
     } catch {
       setMessages(prev => [...prev, {

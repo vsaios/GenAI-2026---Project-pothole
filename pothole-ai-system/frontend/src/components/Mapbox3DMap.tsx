@@ -4,6 +4,7 @@ import mapboxgl, { Map } from "mapbox-gl"
 
 import { MAPBOX_TOKEN } from "@/config/env"
 import { torontoReports } from "@/mock/torontoReports"
+import { FLY_TO_EVENT } from "@/services/geocode"
 import type { Report } from "@/types/report"
 import { cn } from "@/lib/utils"
 
@@ -144,6 +145,17 @@ export function Mapbox3DMap({
     })
 
     mapRef.current = map
+
+    const onFlyTo = (e: CustomEvent<{ lng: number; lat: number }>) => {
+      if (mapRef.current) {
+        mapRef.current.flyTo({
+          center: [e.detail.lng, e.detail.lat],
+          zoom: 15,
+          essential: true,
+        })
+      }
+    }
+    window.addEventListener(FLY_TO_EVENT, onFlyTo as EventListener)
 
     map.on("load", () => {
       if (streetLevelMode) {
@@ -409,6 +421,7 @@ export function Mapbox3DMap({
     })
 
     return () => {
+      window.removeEventListener(FLY_TO_EVENT, onFlyTo as EventListener)
       if (clusterAnimationFrameRef.current !== null) {
         cancelAnimationFrame(clusterAnimationFrameRef.current)
         clusterAnimationFrameRef.current = null

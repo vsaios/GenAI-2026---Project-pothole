@@ -1,7 +1,9 @@
 import sys
 import os
 
-AI_PATH = r"C:\GenAI-2026---Project-pothole\pothole-ai-system\ai\Moorcheh"
+# Cross-platform path to AI Moorcheh module
+_here = os.path.dirname(os.path.abspath(__file__))
+AI_PATH = os.path.normpath(os.path.join(_here, "..", "..", "..", "ai", "Moorcheh"))
 if AI_PATH not in sys.path:
     sys.path.insert(0, AI_PATH)
 
@@ -18,9 +20,15 @@ class ChatRequest(BaseModel):
 
 @router.post("/chat")
 async def chat(request: ChatRequest):
-    all_potholes = get_potholes()
-    answer = generate_chat_response(request.message, all_potholes)
-    return {"answer": answer, "potholes_found": len(all_potholes)}
+    try:
+        all_potholes = get_potholes()
+        answer = generate_chat_response(request.message, all_potholes)
+        return {"answer": answer, "potholes_found": len(all_potholes)}
+    except Exception as e:
+        return {
+            "answer": f"Chat service error: {str(e)}. Check HF_ENDPOINT in ai/Moorcheh/.env and Moorcheh connection.",
+            "potholes_found": 0,
+        }
 
 @router.get("/potholes")
 async def get_all_potholes():

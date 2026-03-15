@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Navbar } from "@/components/Navbar"
 import { ChatWidget } from "@/components/ChatWidget"
+import { ReportsProvider } from "@/context/ReportsContext"
 import { Landing } from "@/pages/Landing"
 import { Dashboard } from "@/pages/Dashboard"
 import { TorontoPage } from "@/pages/TorontoPage"
@@ -10,16 +11,18 @@ function App() {
   const [page, setPage] = useState("landing")
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-50">
-      <Navbar currentPage={page} onNavigate={setPage} />
+    <ReportsProvider>
+      <div className="min-h-screen bg-slate-950 text-slate-50">
+        <Navbar currentPage={page} onNavigate={setPage} />
 
-      {page === "landing" && <Landing />}
-      {page === "dashboard" && <Dashboard />}
-      {page === "toronto" && <TorontoPage />}
-      {page === "report" && <Report />}
+        {page === "landing" && <Landing />}
+        {page === "dashboard" && <Dashboard />}
+        {page === "toronto" && <TorontoPage />}
+        {page === "report" && <Report onNavigate={setPage} />}
 
-      {page !== "landing" && <ChatWidget />}
-    </div>
+        {page !== "landing" && <ChatWidget />}
+      </div>
+    </ReportsProvider>
   )
 }
 

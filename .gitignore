@@ -36,3 +36,5 @@ pothole-ai-system/frontend/node_modules/
 pothole-ai-system/frontend/dist/
 pothole-ai-system/backend/app/__pycache__/
 pothole-ai-system/ai/Moorcheh/__pycache__/
+.DS_Store
+.vscode/

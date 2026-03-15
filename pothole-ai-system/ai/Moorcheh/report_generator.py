@@ -4,22 +4,26 @@ from dotenv import load_dotenv
 
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
+# Use HF_TOKEN (HuggingFace Inference) or OPENAI_API_KEY (OpenAI), default for local/test
+api_key = os.getenv("HF_TOKEN") or os.getenv("OPENAI_API_KEY") or "hf-no-key-needed"
 client = OpenAI(
-    api_key="hf-no-key-needed",
-    base_url=os.getenv("HF_ENDPOINT")
+    api_key=api_key,
+    base_url=os.getenv("HF_ENDPOINT") or "https://api.openai.com/v1",
 )
 
 def generate_report(pothole: dict) -> str:
     prompt_path = os.path.join(os.path.dirname(__file__), "../prompts/report_prompt.txt")
     with open(prompt_path) as f:
         template = f.read()
+    issue_type = pothole.get("issue_type", "pothole")
     formatted_prompt = template.format(
         road=pothole["road"],
         lat=round(pothole["lat"], 6),
         lng=round(pothole["lng"], 6),
         severity=pothole["severity"].upper(),
         timestamp=pothole["timestamp"],
-        id=pothole["id"]
+        id=pothole["id"],
+        issue_type=issue_type,
     )
     message = client.chat.completions.create(
         model="openai/gpt-oss-120b",
@@ -28,12 +32,13 @@ def generate_report(pothole: dict) -> str:
     return message.choices[0].message.content
 
 def generate_report_subject(pothole: dict) -> str:
+    issue_type = pothole.get("issue_type", "pothole").title()
     severity_tag = {
-        "high":   "URGENT — Pothole Safety Hazard",
-        "medium": "ACTION REQUIRED — Pothole Detected",
-        "low":    "Pothole Report"
-    }.get(pothole["severity"].lower(), "Pothole Report")
-    return f"[AI Road Monitor] {severity_tag} | {pothole['road']}, Toronto | ID #{pothole['id']}"
+        "high":   f"URGENT — {issue_type} Safety Hazard",
+        "medium": f"ACTION REQUIRED — {issue_type} Detected",
+        "low":    f"{issue_type} Report"
+    }.get(pothole["severity"].lower(), f"{issue_type} Report")
+    return f"[StreetSafe] {severity_tag} | {pothole['road']}, Toronto | ID #{pothole['id']}"
 
 def generate_chat_response(user_message: str, potholes: list) -> str:
     chat_prompt_path = os.path.join(os.path.dirname(__file__), "../prompts/chat_prompt.txt")

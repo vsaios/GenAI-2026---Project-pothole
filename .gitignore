@@ -1,8 +1,12 @@
 # Ignore all .env files (secrets, API keys)
 .env
+.env.local
 *.env
 **/.env
 !.env.example
+node_modules
+.next
+dist
 
 # Backend SQLite DB and uploads
 pothole-ai-system/backend/data/

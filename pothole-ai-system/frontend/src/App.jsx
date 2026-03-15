@@ -6,6 +6,8 @@ import { Landing } from "@/pages/Landing"
 import { Dashboard } from "@/pages/Dashboard"
 import { TorontoPage } from "@/pages/TorontoPage"
 import { Report } from "@/pages/Report"
+import { Login } from "@/pages/Login"
+import { Signup } from "@/pages/Signup"
 
 function App() {
   const [page, setPage] = useState("landing")
@@ -16,11 +18,13 @@ function App() {
         <Navbar currentPage={page} onNavigate={setPage} />
 
         {page === "landing" && <Landing />}
-        {page === "dashboard" && <Dashboard />}
+        {page === "dashboard" && <Dashboard onNavigate={setPage} />}
         {page === "toronto" && <TorontoPage />}
         {page === "report" && <Report onNavigate={setPage} />}
+        {page === "login" && <Login onNavigate={setPage} />}
+        {page === "signup" && <Signup onNavigate={setPage} />}
 
-        {page !== "landing" && <ChatWidget />}
+        {page !== "landing" && page !== "login" && page !== "signup" && <ChatWidget />}
       </div>
     </ReportsProvider>
   )

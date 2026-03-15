@@ -20,6 +20,7 @@ function AppContent() {
   return (
     <>
       <Routes>
+        {/* First landing page is /home (public); then login/signup → dashboard/toronto */}
         <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" element={<Landing />} />
         <Route path="/login" element={<Login />} />

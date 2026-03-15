@@ -5,7 +5,6 @@ export function Navbar() {
   const { user, loading, logout } = useAuth()
   const location = useLocation()
   const navigate = useNavigate()
-  const isLoggedIn = !!user
 
   async function handleLogout() {
     try {
@@ -30,8 +29,9 @@ export function Navbar() {
         </span>
       </div>
 
+      {/* Dashboard and Toronto Map only when authenticated; never show before login */}
       <nav className="flex items-center gap-3 text-sm">
-        {!loading && isLoggedIn && (
+        {!loading && user && (
           <>
             <Link
               to="/dashboard"
@@ -58,7 +58,7 @@ export function Navbar() {
       </nav>
 
       <div className="flex items-center gap-2">
-        {!loading && !isLoggedIn ? (
+        {!loading && !user ? (
           <>
             <Link
               to="/login"
@@ -73,7 +73,7 @@ export function Navbar() {
               Sign Up
             </Link>
           </>
-        ) : isLoggedIn ? (
+        ) : user ? (
           <>
             <span className="max-w-[140px] truncate text-xs text-slate-400">{user.email}</span>
             <button

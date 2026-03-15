@@ -57,16 +57,16 @@ export function ChatWidget() {
       <button
         type="button"
         onClick={() => setOpen(v => !v)}
-        className="fixed bottom-5 right-5 z-40 flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-xs font-semibold text-slate-900 shadow-lg backdrop-blur-md hover:bg-white"
+        className="fixed bottom-5 right-5 z-40 flex items-center gap-2.5 rounded-full bg-white/80 px-6 py-3 text-sm font-semibold text-slate-900 shadow-lg backdrop-blur-md hover:bg-white"
       >
-        <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+        <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500" />
         <span>{open ? "Close Chat" : "Chat with Rua"}</span>
       </button>
 
       {/* Chat window */}
       {open && (
         <div
-          className="fixed bottom-20 right-5 z-30 w-80 rounded-3xl border border-white/20 bg-slate-900/90 shadow-2xl backdrop-blur-xl flex flex-col"
+          className="fixed bottom-24 right-5 z-30 w-80 rounded-3xl border border-white/20 bg-slate-900/90 shadow-2xl backdrop-blur-xl flex flex-col"
           style={{ height: "420px" }}
         >
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10">

@@ -17,9 +17,9 @@ export function Dashboard() {
       <div className="absolute right-6 top-4 z-10 flex items-center gap-3 rounded-lg border border-slate-800 bg-slate-900/90 px-3 py-2 text-sm">
         <Link
           to="/report"
-          className="rounded bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500"
+          className="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-500"
         >
-          Create report
+          Report incident
         </Link>
       </div>
       <Mapbox3DMap reports={allReports} userReportIds={reports.map((r) => r.id)} />

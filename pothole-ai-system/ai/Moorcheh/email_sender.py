@@ -1,7 +1,9 @@
 import os
+import base64
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 from dotenv import load_dotenv
 from report_generator import generate_report, generate_report_subject
 from department_router import get_311_email, get_311_name
@@ -15,11 +17,17 @@ load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 TESTING_MODE = True
 
 def send_pothole_report(pothole: dict) -> dict:
-    """Generate AI report and email it to 311 Toronto."""
-
     subject  = generate_report_subject(pothole)
     body     = generate_report(pothole)
     maps_url = f"https://maps.google.com/?q={pothole['lat']},{pothole['lng']}"
+
+    # Build image section for email
+    if pothole.get("image_base64"):
+        image_line = "Image: Attached — see below"
+    elif pothole.get("image_description"):
+        image_line = f"AI Visual Analysis: {pothole['image_description']}"
+    else:
+        image_line = "Image: Not available"
 
     full_body = f"""To: {get_311_name()}
 
@@ -33,36 +41,24 @@ GPS:         {round(pothole['lat'], 6)}, {round(pothole['lng'], 6)}
 Severity:    {pothole['severity'].upper()}
 Detected:    {pothole['timestamp']}
 Maps link:   {maps_url}
+{image_line}
 System:      StreetSafe Toronto — AI Pothole Monitoring
 """
 
-    # Pick recipient based on mode
     recipient = os.getenv("TEST_EMAIL") if TESTING_MODE else os.getenv("TO_EMAIL", "311@toronto.ca")
 
     try:
-        _send_gmail(
+        _send_gmail_with_image(
             to=recipient,
             subject=subject,
-            body=full_body
+            body=full_body,
+            image_base64=pothole.get("image_base64"),
+            image_filename=pothole.get("image_filename", "pothole.jpg")
         )
-        print(f"[Email] ✓ Sent to {recipient}")
-        return {
-            "subject":    subject,
-            "body":       full_body,
-            "sent_to":    recipient,
-            "status":     "sent",
-            "testing":    TESTING_MODE
-        }
+        return {"subject": subject, "body": full_body, "sent_to": recipient, "status": "sent"}
     except Exception as e:
-        print(f"[Email] ✗ Failed: {e}")
-        return {
-            "subject":    subject,
-            "body":       full_body,
-            "sent_to":    recipient,
-            "status":     f"failed: {str(e)}",
-            "testing":    TESTING_MODE
-        }
-
+        return {"subject": subject, "body": full_body, "sent_to": recipient, "status": f"failed: {str(e)}"}
+       
 def _send_gmail(to: str, subject: str, body: str):
     """Send email via Gmail SMTP."""
     gmail_user     = os.getenv("GMAIL_USER")
@@ -76,6 +72,41 @@ def _send_gmail(to: str, subject: str, body: str):
     msg["To"]      = to
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(gmail_user, gmail_password)
+        server.send_message(msg)
+
+def _send_gmail_with_image(to: str, subject: str, body: str,
+                            image_base64: str = None,
+                            image_filename: str = "pothole_detection.jpg"):
+    """Send email via Gmail SMTP with image decoded from Moorcheh base64."""
+    gmail_user     = os.getenv("GMAIL_USER")
+    gmail_password = os.getenv("GMAIL_APP_PASSWORD")
+
+    if not gmail_user or not gmail_password:
+        raise ValueError("GMAIL_USER or GMAIL_APP_PASSWORD not set in .env")
+
+    msg            = MIMEMultipart()
+    msg["From"]    = gmail_user
+    msg["To"]      = to
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+
+    # Decode base64 from Moorcheh and attach as image
+    if image_base64:
+        try:
+            image_bytes      = base64.b64decode(image_base64)
+            image_attachment = MIMEImage(image_bytes)
+            image_attachment.add_header(
+                "Content-Disposition",
+                "attachment",
+                filename=image_filename
+            )
+            msg.attach(image_attachment)
+            print(f"[Email] ✓ Image decoded from Moorcheh and attached: {image_filename}")
+        except Exception as e:
+            print(f"[Email] ⚠ Could not attach image: {e}")
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
         server.login(gmail_user, gmail_password)

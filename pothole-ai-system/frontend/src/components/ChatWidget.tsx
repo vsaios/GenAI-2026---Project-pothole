@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import { MAPBOX_TOKEN } from "@/config/env"
 import { sendChatMessage } from "@/services/api"
-import { geocodeToToronto, emitFlyTo } from "@/services/geocode"
+import { handleChatLocationSearch, emitFlyTo } from "@/services/geocode"
 
 interface Message {
   role: "user" | "bot"
@@ -29,9 +29,9 @@ export function ChatWidget() {
     setInput("")
     setLoading(true)
 
-    // Hidden location navigation: geocode message and fly map to that location (no search bar)
-    geocodeToToronto(messageText, MAPBOX_TOKEN).then((coords) => {
-      if (coords) emitFlyTo(coords.lng, coords.lat)
+    // Hidden map search: normalize → intersection or road → geocode → go to node or location
+    handleChatLocationSearch(messageText, MAPBOX_TOKEN).then((result) => {
+      if (result) emitFlyTo(result.lng, result.lat, result.zoom)
     })
 
     try {

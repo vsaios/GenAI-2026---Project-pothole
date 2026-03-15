@@ -146,11 +146,11 @@ export function Mapbox3DMap({
 
     mapRef.current = map
 
-    const onFlyTo = (e: CustomEvent<{ lng: number; lat: number }>) => {
+    const onFlyTo = (e: CustomEvent<{ lng: number; lat: number; zoom?: number }>) => {
       if (mapRef.current) {
         mapRef.current.flyTo({
           center: [e.detail.lng, e.detail.lat],
-          zoom: 15,
+          zoom: e.detail.zoom ?? 15,
           essential: true,
         })
       }

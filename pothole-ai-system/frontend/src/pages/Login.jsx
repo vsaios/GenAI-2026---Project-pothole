@@ -1,14 +1,28 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { useAuth } from "@/context/AuthContext"
 
 export function Login() {
-  const { login } = useAuth()
+  const { user, loading, login } = useAuth()
   const navigate = useNavigate()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (!loading && user) navigate("/dashboard", { replace: true })
+  }, [loading, user, navigate])
+
+  if (loading) {
+    return (
+      <main className="mx-auto flex max-w-md flex-col gap-6 px-4 py-16">
+        <p className="text-slate-400">Loading…</p>
+      </main>
+    )
+  }
+
+  if (user) return null
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -55,6 +69,11 @@ export function Login() {
             autoComplete="current-password"
             className="w-full rounded border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100"
           />
+          <p className="mt-1.5 text-right text-xs text-slate-400">
+            <Link to="/forgot-password" className="text-emerald-400 hover:underline">
+              Forgot password?
+            </Link>
+          </p>
         </div>
         {error && (
           <p className="rounded bg-red-500/10 px-3 py-2 text-sm text-red-300">{error}</p>
